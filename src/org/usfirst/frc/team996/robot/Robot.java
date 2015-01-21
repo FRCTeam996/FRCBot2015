@@ -1,6 +1,8 @@
-
 package org.usfirst.frc.team996.robot;
 
+
+import com.ni.vision.NIVision;
+import com.ni.vision.NIVision.Image;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -40,8 +42,10 @@ public class Robot extends SampleRobot {
     Servo yAxis;
     AxisCamera axisCam;
     DigitalInput di;
+    Image image;
     final double ySens = 2;
     final double xSens = 2;
+    int session;
 
     public Robot() {
         myRobot = new RobotDrive(new Talon(0), new Talon(1));
@@ -52,11 +56,14 @@ public class Robot extends SampleRobot {
         cStick = new Joystick(1);
         axisCam = new AxisCamera("10.9.96.11");
         axisCam.writeResolution(AxisCamera.Resolution.k320x240);
-        //axisCam.writeBrightness(0);    
+        axisCam.writeBrightness(0);    
         soundIn = new AnalogInput(2);
         yAxis = new Servo(8);
         xAxis = new Servo(9);
         di = new DigitalInput(0);
+        image = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
+        session = NIVision.IMAQdxOpenCamera("cam0",NIVision.IMAQdxCameraControlMode.CameraControlModeController);
+        NIVision.IMAQdxConfigureGrab(session);
         
     }
 
