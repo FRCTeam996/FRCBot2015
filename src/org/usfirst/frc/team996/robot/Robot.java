@@ -16,94 +16,115 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.vision.AxisCamera;
 
 /**
- * This is a demo program showing the use of the RobotDrive class.
- * The SampleRobot class is the base of a robot application that will automatically call your
- * Autonomous and OperatorControl methods at the right time as controlled by the switches on
- * the driver station or the field controls.
- *
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the SampleRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the manifest file in the resource
- * directory.
- *
- * WARNING: While it may look like a good choice to use for your code if you're inexperienced,
- * don't. Unless you know what you are doing, complex code will be much more difficult under
- * this system. Use IterativeRobot or Command-Based instead if you're new.
+ * Robot Ver. 0.1a
+ * 
+ * This Version:
+ * Robot Chassis
+ * Begining of Camera Vision
+ * Axis Camera Control with servos
+ * 
+ * 
  */
+
 public class Robot extends SampleRobot {
+	
+	//Final Vars
+	final double DEFAULT_DELAY = 0.05;
+	
+	//Chassis
     RobotDrive myRobot;
+    Talon leftMotorControl, rightMotorControl;
+    
+    //Driver Station
     DriverStation DriverStationLCD;
-    AnalogInput soundIn;
-    RobotDrive cDrive;
     Joystick stick;
     Joystick cStick;
-    Servo xAxis;
-    Servo yAxis;
+    
+    //Axis Camera
     AxisCamera axisCam;
-    DigitalInput di;
+    Servo cameraYServo;
+    Servo cameraXServo;
     Image image;
-    final double ySens = 2;
-    final double xSens = 2;
     int session;
+    
+    //Sensors
+    AnalogInput soundIn;
+    
 
     public Robot() {
-        myRobot = new RobotDrive(new Talon(0), new Talon(1));
+    	
+    	//Chassis
+    	try{
+    		leftMotorControl = new Talon(0);
+    		rightMotorControl = new Talon(1);
+    	}catch(Exception e){
+    		System.out.println("Error with chassis talons");
+    	}
+        myRobot = new RobotDrive(leftMotorControl, rightMotorControl);
+        //Need to set expiration here?
         
-        myRobot.setExpiration(0.1);
-        //cDrive = new RobotDrive(8,9);
+        //Driver Station
         stick = new Joystick(0);
         cStick = new Joystick(1);
+        
+        //Axis Camera
         axisCam = new AxisCamera("10.9.96.11");
         axisCam.writeResolution(AxisCamera.Resolution.k320x240);
-        axisCam.writeBrightness(0);    
+        axisCam.writeBrightness(0);
+        try{
+        	cameraYServo = new Servo(8);
+        	cameraXServo = new Servo(9);
+        }catch(Exception e){
+        	System.out.println("[!] Error with Axis Camera servos\nTry checking pwm channels.");
+        }
+        
+        //Sensors
         soundIn = new AnalogInput(2);
-        yAxis = new Servo(8);
-        xAxis = new Servo(9);
-        di = new DigitalInput(0);
+        
+        //Computer Vision
         image = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
         session = NIVision.IMAQdxOpenCamera("cam0",NIVision.IMAQdxCameraControlMode.CameraControlModeController);
         NIVision.IMAQdxConfigureGrab(session);
-        
     }
 
-    /**
-     * Drive left & right motors for 2 seconds then stop
-     */
     public void autonomous() {
-    	System.out.println("Auto done");
-        myRobot.setSafetyEnabled(false);
-        
+        //TBD
     }
-
-    /**
-     * Runs the motors with arcade steering.
-     */
-    boolean tripping = true;
     
     public void operatorControl() {
+    	
+    	//Set Safety On
         myRobot.setSafetyEnabled(true);
+        
+        //Driving Loop
         int old = 0;
         while (isOperatorControl() && isEnabled()) {
-        
-            myRobot.arcadeDrive(stick); // drive with arcade style (use right stick)
-            int newv = soundIn.getValue();
-            if(newv > old){
-            	myRobot.drive(1.0,0.0);
-            }else{
-            	myRobot.drive(0.0, 0.0);
-            }
-            old = newv;
-            Timer.delay(0.05);
-            xAxis.setAngle(xAxis.getAngle() + cStick.getX());
-            yAxis.setAngle(yAxis.getAngle() + cStick.getY());
-            
+        	
+        	//Set "delay" to the default value
+        	//This delay can be changed later based off of conditions
+        	double delay = DEFAULT_DELAY;
+        	
+        	//Flag to determine whether or not user is able to drive
+        	boolean driveFlag = true;
+        	
+        	//Get Sensors input
+        	
+        	//User drive robot
+        	if(driveFlag){
+        		myRobot.arcadeDrive(stick);
+        	}
+        	
+        	//Move Axis Camera
+        	
+        	//Wait for x secs
+        	Timer.delay(delay);
+        	
         }
     }
 
-    /**
-     * Runs during test mode
-     */
+    //Test function tbd
     public void test() {
+    	
     }
+    
 }
