@@ -1,10 +1,12 @@
 package org.usfirst.frc.team996.robot;
 
 
-import com.ni.vision.NIVision;
 import com.ni.vision.NIVision.Image;
+
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SampleRobot;
@@ -14,15 +16,23 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.vision.AxisCamera;
 
 /**
- * Robot Ver. 0.1a
+ * Robot Ver. 0.2
  * 
  * This Version:
- * Robot Chassis
- * Begining of Camera Vision
- * Axis Camera Control with servos
+ * 
+ * myRobot renamed to chassis
+ * Deadband code added for talons
+ * Removed "Slow Mode"
+ * Camera Scale added
+ * Arcade Drive changed to custom code
+ * Offset added for left and right motors
+ * Encoders Code started
  * 
  * Known Bugs:
- * Camera Jerks when tele-OP started
+ * 
+ * Camera Jerks when tele-OP started, maybe?
+ * Slight pull when driving ( Will be fixed by encoders later on )
+ * Axis camera server does not start properly
  * 
  */
 
@@ -35,17 +45,30 @@ public class Robot extends SampleRobot {
 	//Axis Camera Settings
 	final double CAMERA_Y_DEADZONE = 0.01;
 	final double CAMERA_X_DEADZONE = 0.01;
+	final double CAMERA_Y_SCALE = 1.0;
+	final double CAMERA_X_SCALE = 1.0;
 	final String AXIS_CAM_IP = "10.9.96.11";
 	
 	//PWM Channels
 	final int LEFT_TALON_PWM_PIN = 0;
 	final int RIGHT_TALON_PWM_PIN = 1;
+	
+	final int LEFT_ENCODER_A = 2;
+	final int LEFT_ENCODER_B = 3; //Need both A and B?
+	final int RIGHT_ENCODER_A = 4;
+	final int RIGHT_ENCODER_B = 5;
+	
 	final int CAMERA_Y_AXIS_PWM_PIN = 8;
 	final int CAMERA_X_AXIS_PWM_PIN = 9;
 	
 	//Chassis
-    RobotDrive myRobot;
+    RobotDrive chassis;
     Talon leftMotorControl, rightMotorControl;
+    final boolean ELIMINATE_DEADBAND = false; //Eliminate deadband in talons
+    final boolean SQUARED_INPUTS = true; // Square inputs for more accuracy
+    final double DEFAULT_LEFT_OFFSET = 0.0;
+    final double DEFAULT_RIGHT_OFFSET = 0.0;
+    double leftMotorOffset,rightMotorOffset;
     
     //Driver Station
     DriverStation DriverStationLCD;
@@ -54,26 +77,37 @@ public class Robot extends SampleRobot {
     
     //Axis Camera
     AxisCamera axisCam;
-    Servo cameraYServo;
-    Servo cameraXServo;
+    Servo cameraYServo,cameraXServo;
     Image image;
     int session;
     
     //Sensors
     AnalogInput soundIn;
+    Encoder leftMotorEncoder,rightMotorEncoder;
+    final EncodingType ENCODING_TYPE = Encoder.EncodingType.k4X;
+    final boolean REVERSE_ENCODERS = false;
     
 
     public Robot() {
     	
     	//Chassis
     	try{
+    		//Declare Speed Controllers
     		leftMotorControl = new Talon(LEFT_TALON_PWM_PIN);
     		rightMotorControl = new Talon(RIGHT_TALON_PWM_PIN);
     	}catch(Exception e){
-    		System.out.println("Error with chassis talons");
+    		System.out.println("[!] Error with talons\nTry Checking PWM Channels");
     	}
-        myRobot = new RobotDrive(leftMotorControl, rightMotorControl);
-        myRobot.setExpiration(ROBOT_EXPIRATION_TIME);
+    	
+		//If Enabled eliminates deadband in the middle of the range
+		leftMotorControl.enableDeadbandElimination(ELIMINATE_DEADBAND);
+		rightMotorControl.enableDeadbandElimination(ELIMINATE_DEADBAND);
+		
+		//Init chassis
+        chassis = new RobotDrive(leftMotorControl, rightMotorControl);
+        
+        //Sets expiration time in the event that the robot disconnects from driver station.
+        chassis.setExpiration(ROBOT_EXPIRATION_TIME);
         
         //Driver Station
         stick = new Joystick(0);
@@ -92,23 +126,27 @@ public class Robot extends SampleRobot {
         
         //Sensors
         soundIn = new AnalogInput(2);
+        leftMotorEncoder = new Encoder(LEFT_ENCODER_A, LEFT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
+        rightMotorEncoder = new Encoder(RIGHT_ENCODER_A, RIGHT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
         
         //Computer Vision
         /*
         image = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
-        session = NIVision.IMAQdxOpenCamera("cam0",NIVision.IMAQdxCameraControlMode.CameraControlModeController);
+        session = NIVision.IMAQdxOpenCamera(AXIS_CAM_IP,NIVision.IMAQdxCameraControlMode.CameraControlModeController);
         NIVision.IMAQdxConfigureGrab(session)
         */
     }
 
+    //Test Autonomous
     public void autonomous() {
-        //TBD
+
     }
     
+    //Tele-OP mode
     public void operatorControl() {
     	
     	//Set Safety On
-        myRobot.setSafetyEnabled(true);
+        chassis.setSafetyEnabled(true);
         
         //Driving Loop
         while (isOperatorControl() && isEnabled()) {
@@ -118,21 +156,29 @@ public class Robot extends SampleRobot {
         	double delay = DEFAULT_DELAY;
         	
         	//Flag to determine whether or not user is able to drive
-        	boolean driveFlag = true;
+        	boolean canDrive = true;
         	
         	//Get Sensors input
         	
-        	//User drive robot
-        	if(driveFlag){
-        		myRobot.arcadeDrive(stick);
+        	//Change delay, canDrive, and talon offsets based on sensors' results
+        	
+        	//Drive
+        	if(canDrive){
+        		
+        		//Set Offsets
+        		leftMotorOffset = DEFAULT_LEFT_OFFSET;
+        		rightMotorOffset = DEFAULT_RIGHT_OFFSET;
+        		
+        		//Drive
+        		arcadeDrive(stick.getX(), stick.getY(), SQUARED_INPUTS);
         	}
         	
         	//Move Axis Camera
         	if(Math.abs(cStick.getY()) > CAMERA_Y_DEADZONE){
-        		cameraYServo.setAngle(cameraYServo.getAngle() + cStick.getY());	
+        		cameraYServo.setAngle(cameraYServo.getAngle() + cStick.getY() * CAMERA_Y_SCALE);	
         	}
         	if(Math.abs(cStick.getX()) > CAMERA_X_DEADZONE){
-        		cameraXServo.setAngle(cameraXServo.getAngle() + cStick.getX());
+        		cameraXServo.setAngle(cameraXServo.getAngle() + cStick.getX() * CAMERA_X_SCALE);
         	}
         	
         	//Wait for x secs
@@ -140,8 +186,64 @@ public class Robot extends SampleRobot {
         	
         }
     }
+    
+    //Function based off of RobotDrive.arcadeDrive() customized to adjust based off of offset
+    public void arcadeDrive(double moveValue, double rotateValue, boolean squaredInputs) {
+        // local variables to hold the computed PWM values for the motors
+        double leftMotorSpeed;
+        double rightMotorSpeed;
+        
+        moveValue = limit(moveValue);
+        rotateValue = limit(rotateValue);
 
-    //Test function tbd
+        if (squaredInputs) {
+            // square the inputs (while preserving the sign) to increase fine control while permitting full power
+            if (moveValue >= 0.0) {
+                moveValue = (moveValue * moveValue);
+            } else {
+                moveValue = -(moveValue * moveValue);
+            }
+            if (rotateValue >= 0.0) {
+                rotateValue = (rotateValue * rotateValue);
+            } else {
+                rotateValue = -(rotateValue * rotateValue);
+            }
+        }
+
+        if (moveValue > 0.0) {
+            if (rotateValue > 0.0) {
+                leftMotorSpeed = moveValue - rotateValue;
+                rightMotorSpeed = Math.max(moveValue, rotateValue);
+            } else {
+                leftMotorSpeed = Math.max(moveValue, -rotateValue);
+                rightMotorSpeed = moveValue + rotateValue;
+            }
+        } else {
+            if (rotateValue > 0.0) {
+                leftMotorSpeed = -Math.max(-moveValue, rotateValue);
+                rightMotorSpeed = moveValue + rotateValue;
+            } else {
+                leftMotorSpeed = moveValue - rotateValue;
+                rightMotorSpeed = -Math.max(-moveValue, -rotateValue);
+            }
+        }
+
+        //Drive with offset
+        chassis.setLeftRightMotorOutputs(leftMotorSpeed - leftMotorOffset, rightMotorSpeed - rightMotorOffset);
+    }
+    
+    //Grabbed the RobotDrive.limit(double num) from the RobotDrive class for use in this.arcadeDrive()
+    protected static double limit(double num) {
+        if (num > 1.0) {
+            return 1.0;
+        }
+        if (num < -1.0) {
+            return -1.0;
+        }
+        return num;
+    }
+
+    //Pre-competition test
     public void test() {
     	
     }
