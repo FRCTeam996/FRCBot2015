@@ -1,9 +1,10 @@
 package org.usfirst.frc.team996.robot;
 
-
+import com.ni.vision.NIVision;
 import com.ni.vision.NIVision.Image;
 
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
@@ -13,26 +14,30 @@ import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.vision.AxisCamera;
 
 /**
- * Robot Ver. 0.2
+ * Robot Ver. 0.3
  * 
  * This Version:
  * 
- * myRobot renamed to chassis
- * Deadband code added for talons
- * Removed "Slow Mode"
- * Camera Scale added
- * Arcade Drive changed to custom code
- * Offset added for left and right motors
- * Encoders Code started
+ * Camera Code Added
+ * Dashboard for camera started
+ * 
+ * To-Do:
+ * 
+ * Camera Processing
+ * 6-Bar Code
+ * Claw Code
+ * Encoders
+ * Ultra-Sonic Sensors
+ * Do Software and Sensor Documetation and Turn into John
+ * Autonomous Mode 1 (Green Bin on Yellow Bin and Drive out)
+ * Autonomous Mode 2 (Try to get two yellow totes)
+ * Autonomous Mode 3? (Grab Other Teams' Green and Yellow) or (Try and get all 3 Yellow Bins)
  * 
  * Known Bugs:
  * 
- * Camera Jerks when tele-OP started, maybe?
  * Slight pull when driving ( Will be fixed by encoders later on )
- * Axis camera server does not start properly
  * 
  */
 
@@ -47,7 +52,6 @@ public class Robot extends SampleRobot {
 	final double CAMERA_X_DEADZONE = 0.01;
 	final double CAMERA_Y_SCALE = 1.0;
 	final double CAMERA_X_SCALE = 1.0;
-	final String AXIS_CAM_IP = "10.9.96.11";
 	
 	//PWM Channels
 	final int LEFT_TALON_PWM_PIN = 0;
@@ -76,10 +80,12 @@ public class Robot extends SampleRobot {
     Joystick cStick;
     
     //Axis Camera
-    AxisCamera axisCam;
     Servo cameraYServo,cameraXServo;
-    Image image;
     int session;
+    Image frame;
+    NIVision.RawData colorTable;
+    CameraServer server;
+    public static int cam = 0;
     
     //Sensors
     AnalogInput soundIn;
@@ -112,11 +118,7 @@ public class Robot extends SampleRobot {
         //Driver Station
         stick = new Joystick(0);
         cStick = new Joystick(1);
-        
-        //Axis Camera
-        axisCam = new AxisCamera(AXIS_CAM_IP);
-        axisCam.writeResolution(AxisCamera.Resolution.k320x240);
-        axisCam.writeBrightness(0);
+
         try{
         	cameraYServo = new Servo(CAMERA_Y_AXIS_PWM_PIN);
         	cameraXServo = new Servo(CAMERA_X_AXIS_PWM_PIN);
@@ -129,28 +131,34 @@ public class Robot extends SampleRobot {
         leftMotorEncoder = new Encoder(LEFT_ENCODER_A, LEFT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
         rightMotorEncoder = new Encoder(RIGHT_ENCODER_A, RIGHT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
         
-        //Computer Vision
-        /*
-        image = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
-        session = NIVision.IMAQdxOpenCamera(AXIS_CAM_IP,NIVision.IMAQdxCameraControlMode.CameraControlModeController);
-        NIVision.IMAQdxConfigureGrab(session)
-        */
-    }
+        //Camera Server
+        server = CameraServer.getInstance();
+        server.setQuality(50);
+        server.startAutomaticCapture("cam1");
 
+        
+    }
+    
+    public void robotInit() {
+    	
+    }
+   
+        
     //Test Autonomous
     public void autonomous() {
-
+    	
     }
     
     //Tele-OP mode
     public void operatorControl() {
     	
+    	
     	//Set Safety On
         chassis.setSafetyEnabled(true);
         
-        //Driving Loop
+        //Main Driving Loop
         while (isOperatorControl() && isEnabled()) {
-        	
+        	        	
         	//Set "delay" to the default value
         	//This delay can be changed later based off of conditions
         	double delay = DEFAULT_DELAY;
