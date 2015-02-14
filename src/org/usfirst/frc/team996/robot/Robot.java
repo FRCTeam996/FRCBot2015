@@ -8,17 +8,16 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 /**
- * Robot Ver. 0.5b
+ * Robot Ver. 0.5c
  * 
  * This Version:
  * 
- * Added 6-Bar code
+ * Added Solenoid Code in Claw
  * 
  * To-Do:
  * 
  * Do Software and Sensor Documetation and Turn into John
  * Rough Out Sensors
- * Pneumatics for Claw... (May need Adrian for this...)
  * Autonomous mode samples
  * 
  * Known Bugs:
