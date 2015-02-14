@@ -1,7 +1,6 @@
 package org.usfirst.frc.team996.robot;
 
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SampleRobot;
@@ -9,22 +8,21 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 /**
- * Robot Ver. 0.5a
+ * Robot Ver. 0.5b
  * 
  * This Version:
  * 
- * Code seperated and needs just a bit more cleaning
- * Rough out sensors and hope for minimal tweaking at competition
+ * Added 6-Bar code
  * 
  * To-Do:
  * 
  * Do Software and Sensor Documetation and Turn into John
  * Rough Out Sensors
- * Add 6-Bar rough code to Drive
  * Pneumatics for Claw... (May need Adrian for this...)
+ * Autonomous mode samples
  * 
  * Known Bugs:
- * 
+ *
  * Slight pull when driving ( Will be fixed by encoders later on ) (Need encoders wired to do this...)
  * 
  */
@@ -42,7 +40,6 @@ public class Robot extends SampleRobot {
 	final int FLIPPED_LIFT_Y = 1;
 
 	//Driver Station
-	DriverStation DriverStationLCD;
 	Joystick stick;
 	Joystick cStick;
 	final int JOYSTICK_CHASSIS = 0;
@@ -72,10 +69,9 @@ public class Robot extends SampleRobot {
 		drive = new Drive();
 	}
 
-
-	//Test Autonomous
+	//Needs to be tested
 	public void autonomous() {
-
+		//This needs to be filled out as a pushing bot at least to start...
 	}
 
 	//Tele-OP mode
@@ -100,9 +96,7 @@ public class Robot extends SampleRobot {
 
 	//Competition test
 	public void test() {
-
+		
 	}
-
-	
 
 }
