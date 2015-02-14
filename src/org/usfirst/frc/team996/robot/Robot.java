@@ -28,13 +28,20 @@ import edu.wpi.first.wpilibj.Ultrasonic;
 
 public class Robot extends SampleRobot {
 
-	//Final Vars
+	//Autonomous
+	int AUTO_MODE = 1; //Push a bin forwards X secs at Y speed
+	
+	//Autonomous 1
+	final double AUTO_1_PUSH_TIME = 3; //X secs (Better to go under then over)
+	final double AUTO_1_PUSH_SPEED = 0.25; //Y Speed
+	
+	//Tele-OP
 	final double DEFAULT_DELAY = 0.005; //Delay for the main loop
 	
-	//Drive vars
+	//Drive
 	Drive drive;
 	final int FLIPPED_DRIVE_X = 1;
-	final int FLIPPED_DRIVE_Y = -1;
+	final int FLIPPED_DRIVE_Y = 1;
 	final int FLIPPED_LIFT_X = 1;
 	final int FLIPPED_LIFT_Y = 1;
 
@@ -70,7 +77,9 @@ public class Robot extends SampleRobot {
 
 	//Needs to be tested
 	public void autonomous() {
-		//This needs to be filled out as a pushing bot at least to start...
+		if(AUTO_MODE == 1){
+			drive.driveStraight(AUTO_1_PUSH_SPEED, AUTO_1_PUSH_TIME);
+		}
 	}
 
 	//Tele-OP mode
@@ -84,8 +93,9 @@ public class Robot extends SampleRobot {
 			//camera.CameraLoop();
 			
 			//Drive Bot
-			drive.teleOp( FLIPPED_DRIVE_Y * stick.getY(), FLIPPED_DRIVE_X  *stick.getX(), FLIPPED_LIFT_X * cStick.getX(), FLIPPED_LIFT_Y * cStick.getY());
+			drive.teleOp( FLIPPED_DRIVE_X * stick.getX(), FLIPPED_DRIVE_Y  *stick.getY(), FLIPPED_LIFT_X * cStick.getX(), FLIPPED_LIFT_Y * cStick.getY());
 			
+			//Calculate Delay (WIP)
 			double delay = DEFAULT_DELAY;
 			
 			Timer.delay(delay);

@@ -2,6 +2,7 @@ package org.usfirst.frc.team996.robot;
 
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Timer;
 
 public class Drive {	
 	
@@ -87,10 +88,10 @@ public class Drive {
 		//Drive
 		if(canDriveChassis){
 			//Drive
-			arcadeDriveChassis(chassisX, chassisY, CHASSIS_SQUARED_INPUTS);
+			arcadeDriveChassis(chassisY, chassisX, CHASSIS_SQUARED_INPUTS);
 		}
 		if(canDriveLift){
-			arcadeDriveLift(liftX, liftY, LIFT_SQUARED_INPUTS);
+			arcadeDriveLift(liftY, 0.0, LIFT_SQUARED_INPUTS);
 		}
 	}
 
@@ -209,6 +210,15 @@ public class Drive {
 			return -1.0;
 		}
 		return num;
+	}
+	
+	//Autonomous Functions
+	public void driveStraight(double speed, double seconds){
+		arcadeDriveChassis(speed,0.0,false);
+		Timer.delay(seconds);
+		if(speed != 0.0){
+			driveStraight(0.0,0.05); //Recursive function, calls back on itself to stop moving once time is up
+		}
 	}
 
 }
