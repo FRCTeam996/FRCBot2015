@@ -3,10 +3,7 @@ package org.usfirst.frc.team996.robot;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Talon;
 
-public class Drive {
-	//PWM Channels
-	final int LEFT_TALON_PWM_PIN = 0;
-	final int RIGHT_TALON_PWM_PIN = 1;
+public class Drive {	
 	
 	//Chassis
 	RobotDrive chassis;
@@ -24,8 +21,8 @@ public class Drive {
 		//Chassis
 		try{
 			//Declare Speed Controllers
-			leftMotorControl = new Talon(LEFT_TALON_PWM_PIN);
-			rightMotorControl = new Talon(RIGHT_TALON_PWM_PIN);
+			leftMotorControl = new Talon(PWM.LEFT_TALON_PWM_PIN);
+			rightMotorControl = new Talon(PWM.RIGHT_TALON_PWM_PIN);
 		}catch(Exception e){
 			System.out.println("[!] Error with talons\nTry Checking PWM Channels");
 		}

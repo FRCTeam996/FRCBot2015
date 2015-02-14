@@ -58,8 +58,6 @@ public class Robot extends SampleRobot {
 	final int RIGHT_ENCODER_A = 4;
 	final int RIGHT_ENCODER_B = 5;
 
-	final int CAMERA_Y_AXIS_PWM_PIN = 8;
-	final int CAMERA_X_AXIS_PWM_PIN = 9;
 
 
 	Drive drive;
@@ -70,7 +68,7 @@ public class Robot extends SampleRobot {
 	Joystick cStick;
 
 	//Axis Camera
-	Camera camera;
+	//Camera camera;
 	Servo cameraYServo,cameraXServo;
 	int session;
 	Image frame;
@@ -93,8 +91,8 @@ public class Robot extends SampleRobot {
 		cStick = new Joystick(1);
 
 		try{
-			cameraYServo = new Servo(CAMERA_Y_AXIS_PWM_PIN);
-			cameraXServo = new Servo(CAMERA_X_AXIS_PWM_PIN);
+			cameraYServo = new Servo(PWM.CAMERA_Y_AXIS_PWM_PIN);
+			cameraXServo = new Servo(PWM.CAMERA_X_AXIS_PWM_PIN);
 		}catch(Exception e){
 			System.out.println("[!] Error with Axis Camera servos\nTry checking pwm channels.");
 		}
@@ -104,17 +102,11 @@ public class Robot extends SampleRobot {
 		leftMotorEncoder = new Encoder(LEFT_ENCODER_A, LEFT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
 		rightMotorEncoder = new Encoder(RIGHT_ENCODER_A, RIGHT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
 
-		//Camera Server
-		/*
-		server = CameraServer.getInstance();
-		server.setQuality(50);
-		server.startAutomaticCapture("cam1");*/
-
 
 	}
 
 	public void robotInit() {
-		camera = new Camera();
+		//camera = new Camera();
 		drive = new Drive();
 	}
 
@@ -132,10 +124,10 @@ public class Robot extends SampleRobot {
 		while(isOperatorControl() && isEnabled()) {
 			
 			//Loop Camera
-			camera.CameraLoop();
+			//camera.CameraLoop();
 			
 			//Drive Bot
-			drive.teleOp(stick.getX(), stick.getY());
+			drive.teleOp(stick.getY(), (-1) *stick.getX());
 			
 			double delay = DEFAULT_DELAY;
 			
@@ -147,9 +139,9 @@ public class Robot extends SampleRobot {
 				cameraXServo.setAngle(cameraXServo.getAngle() + cStick.getX() * CAMERA_X_SCALE);
 			}
 			
-			Timer.delay(delay);
+			Timer.delay(0.005);
 		}
-		camera.CameraStop();
+		//camera.CameraStop();
 	}
 
 	//Pre-competition test
