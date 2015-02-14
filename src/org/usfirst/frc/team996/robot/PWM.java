@@ -1,8 +1,5 @@
 package org.usfirst.frc.team996.robot;
 
-import edu.wpi.first.wpilibj.Encoder;
-
-
 /*
  * Seperating the drive class and claw class from the others left pwm constants all over the place.
  * This was my quick way of reconsolidating them so they are easier to acces when they need to be adjusted.

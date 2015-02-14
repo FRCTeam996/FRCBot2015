@@ -1,42 +1,31 @@
 package org.usfirst.frc.team996.robot;
 
-import com.ni.vision.NIVision;
-import com.ni.vision.NIVision.Image;
-
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Ultrasonic;
 
 /**
- * Robot Ver. 0.3
+ * Robot Ver. 0.5a
  * 
  * This Version:
  * 
- * Started Seperating Code into different classes
+ * Code seperated and needs just a bit more cleaning
+ * Rough out sensors and hope for minimal tweaking at competition
  * 
- *  
  * To-Do:
  * 
- * Drive Class
- * Claw Class
- * Encoders
- * Ultra-Sonic Sensors
  * Do Software and Sensor Documetation and Turn into John
- * Autonomous Mode 1 (Green Bin on Yellow Bin and Drive out)
- * Autonomous Mode 2 (Try to get two yellow totes)
- * Autonomous Mode 3? (Grab Other Teams' Green and Yellow) or (Try and get all 3 Yellow Bins)
+ * Rough Out Sensors
+ * Add 6-Bar rough code to Drive
+ * Pneumatics for Claw... (May need Adrian for this...)
  * 
  * Known Bugs:
  * 
- * Slight pull when driving ( Will be fixed by encoders later on )
+ * Slight pull when driving ( Will be fixed by encoders later on ) (Need encoders wired to do this...)
  * 
  */
 
@@ -56,25 +45,23 @@ public class Robot extends SampleRobot {
 	DriverStation DriverStationLCD;
 	Joystick stick;
 	Joystick cStick;
-
-	//Camera camera;
-	public static int cam = 0;
+	final int JOYSTICK_CHASSIS = 0;
+	final int JOYSTICK_6BAR = 1;
 
 	//Sensors
-	AnalogInput soundIn;
+	Ultrasonic ultraSonicCluster;
 	Encoder leftMotorEncoder,rightMotorEncoder;
 	final EncodingType ENCODING_TYPE = Encoder.EncodingType.k4X;
 	final boolean REVERSE_ENCODERS = false;
 
 	public Robot() {
 
-
 		//Driver Station
-		stick = new Joystick(0);
-		cStick = new Joystick(1);
+		stick = new Joystick(JOYSTICK_CHASSIS);
+		cStick = new Joystick(JOYSTICK_6BAR);
 
 		//Sensors
-		soundIn = new AnalogInput(2);
+		ultraSonicCluster = new Ultrasonic(Analog.ULTRASONIC_PING, Analog.ULTRASONIC_IN);
 		leftMotorEncoder = new Encoder(PWM.LEFT_ENCODER_A, PWM.LEFT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
 		rightMotorEncoder = new Encoder(PWM.RIGHT_ENCODER_A, PWM.RIGHT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
 
@@ -106,7 +93,7 @@ public class Robot extends SampleRobot {
 			
 			double delay = DEFAULT_DELAY;
 			
-			Timer.delay(0.005);
+			Timer.delay(delay);
 		}
 		//camera.CameraStop();
 	}
