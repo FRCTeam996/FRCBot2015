@@ -13,7 +13,6 @@ public class Drive {
 	final double DEFAULT_LEFT_OFFSET = 0.0;
 	final double DEFAULT_RIGHT_OFFSET = 0.0;
 	final double ROBOT_EXPIRATION_TIME = 0.1;
-	double leftMotorOffset,rightMotorOffset;
 	
 	//6-Bar	
 	
@@ -43,7 +42,7 @@ public class Drive {
 		chassis.setSafetyEnabled(true);
 	}
 	
-	public void teleOp(double x, double y){
+	public void teleOp(double chassisX, double chassisY, double liftX, double liftY){
 		//Flag to determine whether or not user is able to drive
 		boolean canDrive = true;
 
@@ -53,13 +52,8 @@ public class Drive {
 
 		//Drive
 		if(canDrive){
-
-			//Set Offsets
-			leftMotorOffset = DEFAULT_LEFT_OFFSET;
-			rightMotorOffset = DEFAULT_RIGHT_OFFSET;
-
 			//Drive
-			arcadeDrive(x, y, SQUARED_INPUTS);
+			arcadeDrive(chassisX, chassisY, SQUARED_INPUTS);
 		}
 	}
 	
@@ -68,6 +62,12 @@ public class Drive {
 			// local variables to hold the computed PWM values for the motors
 			double leftMotorSpeed;
 			double rightMotorSpeed;
+			double leftMotorOffset;
+			double rightMotorOffset;
+			
+			//Set Offsets
+			leftMotorOffset = DEFAULT_LEFT_OFFSET;
+			rightMotorOffset = DEFAULT_RIGHT_OFFSET;
 
 			moveValue = limit(moveValue);
 			rotateValue = limit(rotateValue);

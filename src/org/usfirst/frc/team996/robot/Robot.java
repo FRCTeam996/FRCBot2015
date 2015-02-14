@@ -45,35 +45,19 @@ public class Robot extends SampleRobot {
 	//Final Vars
 	final double DEFAULT_DELAY = 0.005; //Delay for the main loop
 	
-
-	//Axis Camera Settings
-	final double CAMERA_Y_DEADZONE = 0.01;
-	final double CAMERA_X_DEADZONE = 0.01;
-	final double CAMERA_Y_SCALE = 1.0;
-	final double CAMERA_X_SCALE = 1.0;
-
-	//PWM Channels
-	final int LEFT_ENCODER_A = 2;
-	final int LEFT_ENCODER_B = 3; //Need both A and B?
-	final int RIGHT_ENCODER_A = 4;
-	final int RIGHT_ENCODER_B = 5;
-
-
-
+	//Drive vars
 	Drive drive;
+	final int FLIPPED_DRIVE_X = 1;
+	final int FLIPPED_DRIVE_Y = -1;
+	final int FLIPPED_LIFT_X = 1;
+	final int FLIPPED_LIFT_Y = 1;
 
 	//Driver Station
 	DriverStation DriverStationLCD;
 	Joystick stick;
 	Joystick cStick;
 
-	//Axis Camera
 	//Camera camera;
-	Servo cameraYServo,cameraXServo;
-	int session;
-	Image frame;
-	NIVision.RawData colorTable;
-	CameraServer server;
 	public static int cam = 0;
 
 	//Sensors
@@ -84,24 +68,15 @@ public class Robot extends SampleRobot {
 
 	public Robot() {
 
-		
 
 		//Driver Station
 		stick = new Joystick(0);
 		cStick = new Joystick(1);
 
-		try{
-			cameraYServo = new Servo(PWM.CAMERA_Y_AXIS_PWM_PIN);
-			cameraXServo = new Servo(PWM.CAMERA_X_AXIS_PWM_PIN);
-		}catch(Exception e){
-			System.out.println("[!] Error with Axis Camera servos\nTry checking pwm channels.");
-		}
-
 		//Sensors
 		soundIn = new AnalogInput(2);
-		leftMotorEncoder = new Encoder(LEFT_ENCODER_A, LEFT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
-		rightMotorEncoder = new Encoder(RIGHT_ENCODER_A, RIGHT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
-
+		leftMotorEncoder = new Encoder(PWM.LEFT_ENCODER_A, PWM.LEFT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
+		rightMotorEncoder = new Encoder(PWM.RIGHT_ENCODER_A, PWM.RIGHT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
 
 	}
 
@@ -127,24 +102,16 @@ public class Robot extends SampleRobot {
 			//camera.CameraLoop();
 			
 			//Drive Bot
-			drive.teleOp(stick.getY(), (-1) *stick.getX());
+			drive.teleOp( FLIPPED_DRIVE_Y * stick.getY(), FLIPPED_DRIVE_X  *stick.getX(), FLIPPED_LIFT_X * cStick.getX(), FLIPPED_LIFT_Y * cStick.getY());
 			
 			double delay = DEFAULT_DELAY;
-			
-			//Move Axis Camera
-			if(Math.abs(cStick.getY()) > CAMERA_Y_DEADZONE){
-				cameraYServo.setAngle(cameraYServo.getAngle() + cStick.getY() * CAMERA_Y_SCALE);	
-			}
-			if(Math.abs(cStick.getX()) > CAMERA_X_DEADZONE){
-				cameraXServo.setAngle(cameraXServo.getAngle() + cStick.getX() * CAMERA_X_SCALE);
-			}
 			
 			Timer.delay(0.005);
 		}
 		//camera.CameraStop();
 	}
 
-	//Pre-competition test
+	//Competition test
 	public void test() {
 
 	}
