@@ -1,127 +1,88 @@
 package org.usfirst.frc.team996.robot;
 
-import com.ni.vision.NIVision;
-import com.ni.vision.NIVision.Image;
-
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.CameraServer;
-import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-/**
- * Robot Ver. 0.3
- * 
- * This Version:
- * 
- * Started Seperating Code into different classes
- * 
- *  
+
+/*
  * To-Do:
+ * Convert Claw to Lift
+ * Delete old Lift
  * 
- * Drive Class
- * Claw Class
- * Encoders
+ * Extras:
  * Ultra-Sonic Sensors
- * Do Software and Sensor Documetation and Turn into John
- * Autonomous Mode 1 (Green Bin on Yellow Bin and Drive out)
- * Autonomous Mode 2 (Try to get two yellow totes)
- * Autonomous Mode 3? (Grab Other Teams' Green and Yellow) or (Try and get all 3 Yellow Bins)
- * 
- * Known Bugs:
- * 
- * Slight pull when driving ( Will be fixed by encoders later on )
- * 
+ * Re-add and improve object detection
  */
+
 
 public class Robot extends SampleRobot {
 
-	//Final Vars
-	final double DEFAULT_DELAY = 0.005; //Delay for the main loop
-	
-
-	//Axis Camera Settings
-	final double CAMERA_Y_DEADZONE = 0.01;
-	final double CAMERA_X_DEADZONE = 0.01;
-	final double CAMERA_Y_SCALE = 1.0;
-	final double CAMERA_X_SCALE = 1.0;
-
-	//PWM Channels
-	final int LEFT_ENCODER_A = 2;
-	final int LEFT_ENCODER_B = 3; //Need both A and B?
-	final int RIGHT_ENCODER_A = 4;
-	final int RIGHT_ENCODER_B = 5;
-
-	final int CAMERA_Y_AXIS_PWM_PIN = 8;
-	final int CAMERA_X_AXIS_PWM_PIN = 9;
-
-
+	//Robot
+	final double DEFAULT_DELAY = 0.01; //Delay for the main loop
 	Drive drive;
 
 	//Driver Station
 	DriverStation DriverStationLCD;
 	Joystick stick;
-	Joystick cStick;
-
-	//Axis Camera
-	Camera camera;
-	Servo cameraYServo,cameraXServo;
-	int session;
-	Image frame;
-	NIVision.RawData colorTable;
-	CameraServer server;
-	public static int cam = 0;
+	
+	//6-Bar
+	Lift lift;
 
 	//Sensors
-	AnalogInput soundIn;
-	Encoder leftMotorEncoder,rightMotorEncoder;
-	final EncodingType ENCODING_TYPE = Encoder.EncodingType.k4X;
-	final boolean REVERSE_ENCODERS = false;
 
 	public Robot() {
 
-		
-
 		//Driver Station
 		stick = new Joystick(0);
-		cStick = new Joystick(1);
-
-		try{
-			cameraYServo = new Servo(CAMERA_Y_AXIS_PWM_PIN);
-			cameraXServo = new Servo(CAMERA_X_AXIS_PWM_PIN);
-		}catch(Exception e){
-			System.out.println("[!] Error with Axis Camera servos\nTry checking pwm channels.");
-		}
 
 		//Sensors
-		soundIn = new AnalogInput(2);
-		leftMotorEncoder = new Encoder(LEFT_ENCODER_A, LEFT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
-		rightMotorEncoder = new Encoder(RIGHT_ENCODER_A, RIGHT_ENCODER_B, REVERSE_ENCODERS, ENCODING_TYPE);
-
+		
 		//Camera Server
-		/*
-		server = CameraServer.getInstance();
-		server.setQuality(50);
-		server.startAutomaticCapture("cam1");*/
-
+		
+		//Claw
 
 	}
 
 	public void robotInit() {
-		camera = new Camera();
+
 		drive = new Drive();
+		lift = new Lift();
 	}
 
+	final double binSecs = 0.6;
+	final double binSpeed = 0.15;
+	final double zoneSecs = 2.5;
+	final double zoneSpeed = 0.33;
+	
+	final double turnDelay = 1.0;
+	final double turnRate = 1.0;
+	final double turnDir = 1.0;
+	
+	final double driveSpeed = -0.2;
+	final double driveDelay = 2.5;
+	int autoNum = 2;
 
 	//Test Autonomous
 	public void autonomous() {
 
+		boolean stopped = false;
+		
+		while(isAutonomous() && isEnabled() && !stopped){
+			
+			//Try to output the MatchTime to the dashboard
+			try{
+				SmartDashboard.putInt("Timer (secs):", (int)Timer.getMatchTime());
+				SmartDashboard.putDouble("T-Value", Timer.getMatchTime());
+				SmartDashboard.putBoolean("Stopped:", stopped);
+			}catch(Exception e){
+				
+			}
+
+		}
+		
 	}
 
 	//Tele-OP mode
@@ -131,32 +92,21 @@ public class Robot extends SampleRobot {
 		
 		while(isOperatorControl() && isEnabled()) {
 			
-			//Loop Camera
-			camera.CameraLoop();
+			//Loop Camera if not on server
 			
-			//Drive Bot
+			//Drive Robot
 			drive.teleOp(stick.getX(), stick.getY());
 			
-			double delay = DEFAULT_DELAY;
+			//Claw
+			lift.teleOp(stick.getTrigger());
 			
-			//Move Axis Camera
-			if(Math.abs(cStick.getY()) > CAMERA_Y_DEADZONE){
-				cameraYServo.setAngle(cameraYServo.getAngle() + cStick.getY() * CAMERA_Y_SCALE);	
-			}
-			if(Math.abs(cStick.getX()) > CAMERA_X_DEADZONE){
-				cameraXServo.setAngle(cameraXServo.getAngle() + cStick.getX() * CAMERA_X_SCALE);
-			}
-			
-			Timer.delay(delay);
+			Timer.delay(DEFAULT_DELAY);
 		}
-		camera.CameraStop();
 	}
 
 	//Pre-competition test
 	public void test() {
-
+		
 	}
-
-	
 
 }
